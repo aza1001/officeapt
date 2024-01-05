@@ -621,3 +621,112 @@ app.get('/appointments', async (req, res) => {
         console.error('Error connecting to test MongoDB:', err);
       });
     
+/**
+ * @swagger
+ * /test/register-staff:
+ *   post:
+ *     summary: Register staff (testing)
+ *     tags: [Testing API]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Staff registered successfully
+ *       409:
+ *         description: Username already exists
+ *       500:
+ *         description: Error registering staff
+ */
+
+// Register staff (testing)
+app.post('/test/register-staff', async (req, res) => {
+    const { username, password } = req.body;
+  
+    const existingStaff = await testStaffDB.findOne({ username });
+  
+    if (existingStaff) {
+      return res.status(409).send('Username already exists');
+    }
+  
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    const staff = {
+      username,
+      password: hashedPassword,
+    };
+  
+    testStaffDB
+      .insertOne(staff)
+      .then(() => {
+        res.status(200).send('Staff registered successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error registering staff');
+      });
+  });
+  
+  /**
+   * @swagger
+   * /test/login-staff:
+   *   post:
+   *     summary: Staff login (testing)
+   *     tags: [Testing API]
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               username:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *     responses:
+   *       200:
+   *         description: Staff logged in successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 token:
+   *                   type: string
+   *       401:
+   *         description: Invalid credentials
+   *       500:
+   *         description: Error storing token
+   */
+  app.post('/test/login-staff', async (req, res) => {
+    const { username, password } = req.body;
+  
+    const staff = await testStaffDB.findOne({ username });
+  
+    if (!staff) {
+      return res.status(401).send('Invalid credentials');
+    }
+  
+    const passwordMatch = await bcrypt.compare(password, staff.password);
+  
+    if (!passwordMatch) {
+      return res.status(401).send('Invalid credentials');
+    }
+  
+    const token = jwt.sign({ username, role: 'staff' }, secretKey);
+    testStaffDB // Use the testing database collection
+      .updateOne({ username }, { $set: { token } })
+      .then(() => {
+        res.status(200).json({ token });
+      })
+      .catch(() => {
+        res.status(500).send('Error storing token');
+      });
+  });
+  
