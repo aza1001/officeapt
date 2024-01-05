@@ -13,7 +13,7 @@ const secretKey = 'officeapt';
 
 // MongoDB connection URL with username & password
 const mongoURL =
-  'mongodb+srv://aza:mongoaza@officevms.tilw1nt.mongodb.net/?retryWrites=true&w=majority';
+  'mongodb+srv://aza:0ff1ce4ptm3nt@officevms.tilw1nt.mongodb.net/?retryWrites=true&w=majority';
 
 // MongoDB database and collections names
 const dbName = 'officevms';
@@ -75,4 +75,64 @@ app.listen(port, () => {
 app.get('/', (req, res) => {
  res.send('Hello World!')
 })
+
+/**
+* @swagger
+* components:
+*   securitySchemes:
+*     bearerAuth:
+*       type: http
+*       scheme: bearer
+*       bearerFormat: JWT
+*/
+
+/**
+* @swagger
+* tags:
+*   name: Security
+*   description: APIs accessible only by security personnel
+*/
+
+/**
+* @swagger
+* tags:
+*   name: Staff
+*   description: APIs accessible only by staff members
+*/
+
+/**
+* @swagger
+* tags:
+*   name: Testing API
+*   description: APIs for testing only (will not be saved into the main database)
+*/
+
+/**
+* @swagger
+* /register-staff:
+*   post:
+*     summary: Register staff
+*     tags: [Security]
+*     security:
+*       - bearerAuth: []
+*     requestBody:
+*       content:
+*         application/json:
+*           schema: 
+*             type: object
+*             properties:
+*               username:
+*                 type: string
+*               password:
+*                 type: string
+*     responses:
+*       200:
+*         description: Staff registered successfully
+*       403:
+*         description: Invalid or unauthorized token
+*       409:
+*         description: Username already exists
+*       500:
+*         description: Error registering staff
+*/
 
