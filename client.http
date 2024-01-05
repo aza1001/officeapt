@@ -1,0 +1,94 @@
+### create visitors
+POST https://officeapt.azurewebsites.net/register-staff
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
+
+
+{
+  "username": "john",
+  "password": "123" 
+}
+// staff registration
+
+###
+
+POST https://officeapt.azurewebsites.net/register-security
+Content-Type: application/json
+
+{
+  "username": "bob",
+  "password": "123" 
+}
+// security registration
+
+###
+
+POST https://officeapt.azurewebsites.net/login-staff
+Content-Type: application/json
+
+{
+  "username": "john",
+  "password": "123" 
+}
+// staff login
+
+###
+
+POST https://officeapt.azurewebsites.net/login-security
+Content-Type: application/json
+
+{
+  "username": "bob",
+  "password": "123" 
+}
+// security login
+
+###
+
+POST https://officeapt.azurewebsites.net/appointments
+Content-Type: application/json
+
+{
+  "name": "matt",
+  "company": "ABC Corporation",
+  "purpose": "meeting",
+  "phoneNo": "011223344",
+  "date": "26-1-2024",
+  "time": "12:00AM",
+  "verification": "N/A",
+  "staff": {
+    "username": "john"
+  }
+}
+
+###
+
+GET https://officeapt.azurewebsites.net/staff-appointments/john
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
+
+###
+
+PUT https://officeapt.azurewebsites.net/appointments/matt
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
+Content-Type: application/json
+
+{ "verification": "verified" }
+
+###
+
+DELETE https://officeapt.azurewebsites.net/appointments/matt
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
+
+####
+
+GET https://officeapt.azurewebsites.net/appointments?name=matt
+
+
+###
+POST https://officeapt.azurewebsites.net/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
+Content-Type: application/json
+
+{
+  "username": "john"
+}

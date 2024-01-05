@@ -601,7 +601,7 @@ app.get('/appointments', async (req, res) => {
     
     // MongoDB connection URL for testing
     const testMongoURL =
-      'mongodb+srv://aza:mongoaza@officevms.tilw1nt.mongodb.net/test?retryWrites=true&w=majority';
+      'mongodb+srv://aza:0ff1ce4ptm3nt@officevms.tilw1nt.mongodb.net/?retryWrites=true&w=majority';
     
     const testDBName = 'test';
     const testStaffCollection = 'staff';
