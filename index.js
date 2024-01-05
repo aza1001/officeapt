@@ -136,3 +136,88 @@ app.get('/', (req, res) => {
 *         description: Error registering staff
 */
 
+// Register staff
+app.post('/register-staff', authenticateToken, async (req, res) => {
+    const { role } = req.user;
+  
+    if (role !== 'security') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    const { username, password } = req.body;
+  
+    const existingStaff = await staffDB.findOne({ username });
+  
+    if (existingStaff) {
+      return res.status(409).send('Username already exists');
+    }
+  
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    const staff = {
+      username,
+      password: hashedPassword,
+    };
+  
+    staffDB
+      .insertOne(staff)
+      .then(() => {
+        res.status(200).send('Staff registered successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error registering staff');
+      });
+  });
+  
+  /**
+  * @swagger
+  * /register-security:
+  *   post:
+  *     summary: Register security
+  *     tags: [Security]
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:
+  *               username:
+  *                 type: string
+  *               password:
+  *                 type: string
+  *     responses:
+  *       200:
+  *         description: Security registered successfully
+  *       409:
+  *         description: Username already exists
+  *       500:
+  *         description: Error registering security
+  */
+  
+  // Register security
+  app.post('/register-security', async (req, res) => {
+    const { username, password } = req.body;
+  
+    const existingSecurity = await securityDB.findOne({ username });
+  
+    if (existingSecurity) {
+      return res.status(409).send('Username already exists');
+    }
+  
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    const security = {
+      username,
+      password: hashedPassword,
+    };
+  
+    securityDB
+      .insertOne(security)
+      .then(() => {
+        res.status(200).send('Security registered successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error registering security');
+      });
+  });
+  
