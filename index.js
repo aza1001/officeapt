@@ -340,3 +340,118 @@ app.post('/login-staff', async (req, res) => {
       });
   });
   
+/**
+ * @swagger
+ * /appointments:
+ *   post:
+ *     summary: Create appointment
+ *     tags: [Public]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               company:
+ *                 type: string
+ *               purpose:
+ *                 type: string
+ *               phoneNo:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *               time:
+ *                 type: string
+ *               staff:
+ *                 type: object
+ *                 properties:
+ *                   username:
+ *                     type: string
+ *     responses:
+ *       200:
+ *         description: Appointment created successfully
+ *       500:
+ *         description: Error creating appointment
+ */
+
+// Create appointment
+app.post('/appointments', async (req, res) => {
+    const {
+      name,
+      company,
+      purpose,
+      phoneNo,
+      date,
+      time,
+      staff: { username },
+    } = req.body;
+
+    const appointment = {
+      name,
+      company,
+      purpose,
+      phoneNo,
+      date,
+      time,
+      staff: { username },
+    };
+
+    appointmentDB
+      .insertOne(appointment)
+      .then(() => {
+        res.status(200).send('Appointment created successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error creating appointment');
+      });
+  });
+
+/**
+* @swagger
+* /staff-appointments/{username}:
+*   get:
+*     summary: Get staff's appointments
+*     tags: [Staff]
+*     security:
+*       - bearerAuth: []
+*     parameters:
+*       - name: username
+*         in: path
+*         description: Staff member's username
+*         required: true
+*         schema:
+*           type: string
+*     responses:
+*       200:
+*         description: List of staff's appointments
+*       403:
+*         description: Invalid or unauthorized token
+*       500:
+*         description: Error retrieving appointments
+*/
+
+// Get staff's appointments
+app.get('/staff-appointments/:username', authenticateToken, async (req, res) => {
+  const { username } = req.params;
+  const { role, username: authenticatedUsername } = req.user;
+
+  if (role !== 'staff') {
+    return res.status(403).send('Invalid or unauthorized token');
+  }
+
+  if (username !== authenticatedUsername) {
+    return res.status(403).send('Invalid or unauthorized token');
+  }
+
+  appointmentDB
+    .find({ 'staff.username': username })
+    .toArray()
+    .then((appointments) => {
+      res.json(appointments);
+    })
+    .catch((error) => {
+      res.status(500).send('Error retrieving appointments');
+    });
+});
