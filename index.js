@@ -561,3 +561,63 @@ app.put('/appointments/:name', authenticateToken, async (req, res) => {
       });
   });
   
+  /**
+* @swagger
+* /appointments:
+*   get:
+*     summary: view appointments using the name used when the appointment was made (visitor)
+*     tags: [Public]
+*     parameters:
+*       - name: name
+*         in: query
+*         description: Filter appointments by name
+*         required: false
+*         schema:
+*           type: string
+*     responses:
+*       200:
+*         description: List of appointments
+*       500:
+*         description: Error retrieving appointments
+*/
+
+app.get('/appointments', async (req, res) => {
+    const { name } = req.query;
+    
+    const filter = name ? { name: { $regex: name, $options: 'i' } } : {};
+    
+    appointmentDB
+      .find(filter)
+      .toArray()
+      .then((appointments) => {
+        res.json(appointments);
+      })
+      .catch((error) => {
+        res.status(500).send('Error retrieving appointments');
+      });
+    });
+    
+    /*********** TESTING API *******************/
+    
+    // MongoDB connection URL for testing
+    const testMongoURL =
+      'mongodb+srv://aza:mongoaza@officevms.tilw1nt.mongodb.net/test?retryWrites=true&w=majority';
+    
+    const testDBName = 'test';
+    const testStaffCollection = 'staff';
+    const testSecurityCollection = 'security';
+    const testAppointmentCollection = 'appointments';
+    
+    let testStaffDB, testSecurityDB, testAppointmentDB;
+    
+    mongodb.MongoClient.connect(testMongoURL, { useUnifiedTopology: true })
+      .then((client) => {
+        const testDB = client.db(testDBName);
+        testStaffDB = testDB.collection(testStaffCollection);
+        testSecurityDB = testDB.collection(testSecurityCollection);
+        testAppointmentDB = testDB.collection(testAppointmentCollection);
+      })
+      .catch((err) => {
+        console.error('Error connecting to test MongoDB:', err);
+      });
+    
