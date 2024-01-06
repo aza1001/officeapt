@@ -596,6 +596,79 @@ app.get('/appointments', async (req, res) => {
         res.status(500).send('Error retrieving appointments');
       });
     });
+
+/**
+* @swagger
+* /staff-members:
+*   get:
+*     summary: Get all staff members
+*     tags: [Security]
+*     security:
+*       - bearerAuth: []
+*     responses:
+*       200:
+*         description: List of all staff members
+*       403:
+*         description: Invalid or unauthorized token
+*       500:
+*         description: Error retrieving staff members
+*/
+
+// Get all staff members
+app.get('/staff-members', authenticateToken, async (req, res) => {
+    const { role } = req.user;
+  
+    if (role !== 'security') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    staffDB
+      .find({}, { projection: {password: 0, token: 0 } })
+      .toArray()
+      .then((staff) => {
+        res.json(staff);
+      })
+      .catch((error) => {
+        res.status(500).send('Error retrieving staff members');
+      });
+  });
+  
+  /**
+  * @swagger
+  * /security-members:
+  *   get:
+  *     summary: Get all security members
+  *     tags: [Security]
+  *     security:
+  *       - bearerAuth: []
+  *     responses:
+  *       200:
+  *         description: List of all security members
+  *       403:
+  *         description: Invalid or unauthorized token
+  *       500:
+  *         description: Error retrieving security members
+  */
+  
+  // Get all security members
+  app.get('/security-members', authenticateToken, async (req, res) => {
+    const { role } = req.user;
+  
+    if (role !== 'security') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    securityDB
+      .find({}, { projection: { password: 0, token: 0 } })
+      .toArray()
+      .then((securityMembers) => {
+        res.json(securityMembers);
+      })
+      .catch((error) => {
+        res.status(500).send('Error retrieving security members');
+      });
+  });
+  
     
     /*********** TESTING API *******************/
     
@@ -729,4 +802,6 @@ app.post('/test/register-staff', async (req, res) => {
         res.status(500).send('Error storing token');
       });
   });
+  
+
   
