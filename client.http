@@ -1,4 +1,10 @@
-### create visitors
+### AZFA SDN BHD OFFICE APPOINTMENT
+/// 1. SECURITY API
+/// 2. STAFF API
+/// 3. PUBLIC API
+/// 4. TESTING API
+
+
 
 ///////////////////////// SECURITY API /////////////////////////
 
@@ -155,3 +161,29 @@ Content-Type: application/json
 }
 
 // logout account
+
+###
+
+
+
+//////////////////////// TESTING API ///////////////////////
+
+// *staff registration
+POST https://officeapt.azurewebsites.net/test/register-staff
+Content-Type: application/json
+
+{
+  "username": "john",
+  "password": "123" 
+}
+
+###
+
+ // *staff login
+POST https://officeapt.azurewebsites.net//test/login-staff
+Content-Type: application/json
+
+{
+  "username": "john",
+  "password": "321" 
+}
