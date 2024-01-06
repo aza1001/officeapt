@@ -1,4 +1,8 @@
 ### create visitors
+
+///////////////////////// SECURITY API /////////////////////////
+
+// *staff registration
 POST https://officeapt.azurewebsites.net/register-staff
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
@@ -7,10 +11,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvY
   "username": "john",
   "password": "123" 
 }
-// staff registration
 
 ###
 
+// *security registration
 POST https://officeapt.azurewebsites.net/register-security
 Content-Type: application/json
 
@@ -18,10 +22,44 @@ Content-Type: application/json
   "username": "bob",
   "password": "123" 
 }
-// security registration
 
 ###
 
+
+// *security login
+POST https://officeapt.azurewebsites.net/login-security
+Content-Type: application/json
+
+{
+  "username": "bob",
+  "password": "123" 
+}
+
+###
+
+// *Check visitor's verification
+GET https://officeapt.azurewebsites.net/visitor-appointment/matt
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
+
+###
+
+// *list of staffs
+GET https://officeapt.azurewebsites.net/staff-members
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
+
+###
+
+// *list of securities
+GET https://officeapt.azurewebsites.net/security-members
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
+
+###
+
+
+
+///////////////////// STAFF API /////////////////////////
+
+// *staff login
 POST https://officeapt.azurewebsites.net/login-staff
 Content-Type: application/json
 
@@ -29,10 +67,10 @@ Content-Type: application/json
   "username": "john",
   "password": "321" 
 }
-// staff login
 
 ###
 
+// *change password
 PUT https://officeapt.azurewebsites.net/change-password
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ1MTczODl9.Mp_-KEh7lUt5eCQzyRtp2zpG7UY6AkSVySI-R92OMQk
 Content-Type: application/json
@@ -43,6 +81,7 @@ Content-Type: application/json
 
 ###
 
+// *update information
 PUT https://officeapt.azurewebsites.net/update-staff-info
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ1MTczODl9.Mp_-KEh7lUt5eCQzyRtp2zpG7UY6AkSVySI-R92OMQk
 Content-Type: application/json
@@ -54,17 +93,33 @@ Content-Type: application/json
 }
 
 ###
-POST https://officeapt.azurewebsites.net/login-security
-Content-Type: application/json
 
-{
-  "username": "bob",
-  "password": "123" 
-}
-// security login
+// check appointments
+GET https://officeapt.azurewebsites.net/staff-appointments/john
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
 
 ###
 
+// *verify appointment
+PUT https://officeapt.azurewebsites.net/appointments/matt
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
+Content-Type: application/json
+
+{ "verification": "verified" }
+
+###
+
+// *delete appointment
+DELETE https://officeapt.azurewebsites.net/appointments/matt
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
+
+####
+
+
+
+/////////////////// PUBLIC API /////////////////////////
+
+// *create appointment
 POST https://officeapt.azurewebsites.net/appointments
 Content-Type: application/json
 
@@ -81,59 +136,16 @@ Content-Type: application/json
   }
 }
 
-// create appointment
+###
+
+// *visitor check their appointment status
+GET https://officeapt.azurewebsites.net/public-visitor-appointment/matt
 
 ###
 
-GET https://officeapt.azurewebsites.net/staff-appointments/john
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
-
-// staff's appointment lists
-
-###
-
-PUT https://officeapt.azurewebsites.net/appointments/matt
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
-Content-Type: application/json
-
-{ "verification": "verified" }
-
-// staff's appointment verification
-
-###
-
-DELETE https://officeapt.azurewebsites.net/appointments/matt
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
-
-// for staff to delete appointment
-
-####
-
-GET https://officeapt.azurewebsites.net/appointments?name=matt
-
-// visitor check their appointment status
-
-###
-
-GET https://officeapt.azurewebsites.net/visitor-appointment/matt
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
 
 
-###
-
-GET https://officeapt.azurewebsites.net/staff-members
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
-
-// list of staff (security)
-
-###
-
-GET https://officeapt.azurewebsites.net/security-members
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsInJvbGUiOiJzZWN1cml0eSIsImlhdCI6MTcwNDQ2Njc0OH0.e82NiBLSz8nAraWhFVs0XJVuJiaxDNnssP3kMOk5F8A
-
-// list of security (security)
-
-###
+///////////////////// LOGOUT ///////////////////////////////////
 POST https://officeapt.azurewebsites.net/logout
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
 Content-Type: application/json
