@@ -716,7 +716,7 @@ app.put('/appointments/:name', authenticateToken, async (req, res) => {
 *           type: string
 *     responses:
 *       200:
-*         description: List of appointments
+*         description: appointments information
 *       500:
 *         description: Error retrieving appointments
 */
@@ -741,7 +741,7 @@ app.get('/appointments', async (req, res) => {
 * @swagger
 * /appointments:
 *   get:
-*     summary: View appointments with detailed information (accessible only by security)
+*     summary: View appointments with limited information (accessible only by security)
 *     tags: [Security]
 *     security:
 *       - bearerAuth: []
@@ -754,14 +754,14 @@ app.get('/appointments', async (req, res) => {
 *           type: string
 *     responses:
 *       200:
-*         description: List of appointments with detailed information
+*         description: visitor's appointment information
 *       403:
 *         description: Invalid or unauthorized token
 *       500:
 *         description: Error retrieving appointments
 */
 
-// View appointments with detailed information (accessible only by security)
+// View appointments with limited information (accessible only by security)
 app.get('/appointments', authenticateToken, async (req, res) => {
     const { name } = req.query;
     const { role, username } = req.user;
@@ -771,16 +771,17 @@ app.get('/appointments', authenticateToken, async (req, res) => {
     }
   
     const filter = name ? { 'staff.username': username, name: { $regex: name, $options: 'i' } } : { 'staff.username': username };
-    
+  
     appointmentDB
       .find(filter)
       .toArray()
       .then((appointments) => {
-        // Customize the response to include specific information
+        // Customize the response to include limited information
         const formattedAppointments = appointments.map(appointment => ({
           'visitor name': appointment.name,
           date: appointment.date,
           time: appointment.time,
+          'verification status': appointment.verification,
           'staff name': appointment.staff.username,
           'staff phone no': appointment.staff.phoneNo,
           'staff department': appointment.staff.department,
