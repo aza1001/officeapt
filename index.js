@@ -786,9 +786,9 @@ app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
       date: appointment.date,
       verification: appointment.verification,
       staff: {
-        name: appointment.staff.username,
-        phoneNo: appointment.staff.phoneNo,
-        department: appointment.staff.department,
+        name: staff.username,
+        phoneNo: staff.phoneNo,
+        department: staff.department,
       },
     };
   
