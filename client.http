@@ -151,21 +151,6 @@ GET https://officeapt.azurewebsites.net/public-visitor-appointment/matt
 
 
 
-///////////////////// LOGOUT ///////////////////////////////////
-POST https://officeapt.azurewebsites.net/logout
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpvaG4iLCJyb2xlIjoic3RhZmYiLCJpYXQiOjE3MDQ0NjY4MDd9.4Ll3JouZm1UEnnqFLO6CTUAmbsFkw7dzCb3pmWfeZfk
-Content-Type: application/json
-
-{
-  "username": "john"
-}
-
-// logout account
-
-###
-
-
-
 //////////////////////// TESTING API ///////////////////////
 
 // *staff registration
