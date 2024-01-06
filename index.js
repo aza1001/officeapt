@@ -701,7 +701,7 @@ app.put('/appointments/:name', authenticateToken, async (req, res) => {
       });
   });
   
-  /**
+/**
 * @swagger
 * /appointments:
 *   get:
@@ -736,6 +736,63 @@ app.get('/appointments', async (req, res) => {
         res.status(500).send('Error retrieving appointments');
       });
     });
+
+/**
+* @swagger
+* /appointments:
+*   get:
+*     summary: View appointments with detailed information (accessible only by security)
+*     tags: [Security]
+*     security:
+*       - bearerAuth: []
+*     parameters:
+*       - name: name
+*         in: query
+*         description: Filter appointments by name
+*         required: false
+*         schema:
+*           type: string
+*     responses:
+*       200:
+*         description: List of appointments with detailed information
+*       403:
+*         description: Invalid or unauthorized token
+*       500:
+*         description: Error retrieving appointments
+*/
+
+// View appointments with detailed information (accessible only by security)
+app.get('/appointments', authenticateToken, async (req, res) => {
+    const { name } = req.query;
+    const { role, username } = req.user;
+  
+    if (role !== 'security') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    const filter = name ? { 'staff.username': username, name: { $regex: name, $options: 'i' } } : { 'staff.username': username };
+    
+    appointmentDB
+      .find(filter)
+      .toArray()
+      .then((appointments) => {
+        // Customize the response to include specific information
+        const formattedAppointments = appointments.map(appointment => ({
+          'visitor name': appointment.name,
+          date: appointment.date,
+          time: appointment.time,
+          'staff name': appointment.staff.username,
+          'staff phone no': appointment.staff.phoneNo,
+          'staff department': appointment.staff.department,
+        }));
+  
+        res.json(formattedAppointments);
+      })
+      .catch((error) => {
+        res.status(500).send('Error retrieving appointments');
+      });
+  });
+  
 
 /**
 * @swagger
