@@ -700,42 +700,80 @@ app.put('/appointments/:name', authenticateToken, async (req, res) => {
         res.status(500).send('Error deleting appointment');
       });
   });
-  
+ 
 /**
-* @swagger
-* /appointments:
-*   get:
-*     summary: view appointments using the name used when the appointment was made (visitor)
-*     tags: [Public]
-*     parameters:
-*       - name: name
-*         in: query
-*         description: Filter appointments by name
-*         required: false
-*         schema:
-*           type: string
-*     responses:
-*       200:
-*         description: appointments information
-*       500:
-*         description: Error retrieving appointments
-*/
+ * @swagger
+ * /visitor-appointment/{name}:
+ *   get:
+ *     summary: Get visitor's appointment information
+ *     tags: [Security]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: name
+ *         in: path
+ *         description: Visitor's name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Visitor's appointment information
+ *       403:
+ *         description: Invalid or unauthorized token
+ *       404:
+ *         description: Appointment not found
+ *       500:
+ *         description: Error retrieving appointment information
+ */
 
-app.get('/appointments', async (req, res) => {
-    const { name } = req.query;
-    
-    const filter = name ? { name: { $regex: name, $options: 'i' } } : {};
-    
-    appointmentDB
-      .find(filter)
-      .toArray()
-      .then((appointments) => {
-        res.json(appointments);
-      })
-      .catch((error) => {
-        res.status(500).send('Error retrieving appointments');
-      });
-    });
+// Get visitor's appointment information
+app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
+    // ... (existing code)
+
+    try {
+        const appointment = await appointmentDB.findOne({ name });
+
+        if (!appointment) {
+            return res.status(404).send('Appointment not found');
+        }
+
+        const { time, date, verification, staff: { username, phoneNo, department } } = appointment;
+
+        if (!verification) {
+            // If verification is not true, only show staff name
+            const visitorAppointmentInfo = {
+                'visitorName': name,
+                'staffName': username,
+            };
+
+            return res.json(visitorAppointmentInfo);
+        }
+
+        const staffMember = await staffDB.findOne({ username });
+
+        if (!staffMember) {
+            return res.status(404).send('Staff member not found');
+        }
+
+        const { phoneNo: staffPhoneNo, department: staffDepartment } = staffMember;
+
+        const visitorAppointmentInfo = {
+            'visitorName': name,
+            'time': time,
+            'date': date,
+            'verification': verification,
+            'staffName': username,
+            'staffPhoneNo': staffPhoneNo,
+            'staffDepartment': staffDepartment,
+        };
+
+        res.json(visitorAppointmentInfo);
+    } catch (error) {
+        res.status(500).send('Error retrieving appointment information');
+    }
+});
+
 
 /**
  * @swagger
