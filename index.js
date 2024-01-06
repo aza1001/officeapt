@@ -738,6 +738,74 @@ app.get('/appointments', async (req, res) => {
     });
 
 /**
+ * @swagger
+ * /visitor-appointment/{name}:
+ *   get:
+ *     summary: Get visitor's appointment information
+ *     tags: [Security]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: name
+ *         in: path
+ *         description: Visitor's name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Visitor's appointment information
+ *       403:
+ *         description: Invalid or unauthorized token
+ *       404:
+ *         description: Appointment not found
+ *       500:
+ *         description: Error retrieving appointment information
+ */
+
+// Get visitor's appointment information
+app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
+    const { name } = req.params;
+    const { role } = req.user;
+
+    if (role !== 'security') {
+        return res.status(403).send('Invalid or unauthorized token');
+    }
+
+    try {
+        const appointment = await appointmentDB.findOne({ name });
+
+        if (!appointment) {
+            return res.status(404).send('Appointment not found');
+        }
+
+        const { time, date, verification, staff: { username } } = appointment;
+        const staffMember = await staffDB.findOne({ username });
+
+        if (!staffMember) {
+            return res.status(404).send('Staff member not found');
+        }
+
+        const { phoneNo, department } = staffMember;
+
+        const visitorAppointmentInfo = {
+            'visitorName': name,
+            'time': time,
+            'date': date,
+            'verification': verification,
+            'staffName': username,
+            'staffPhoneNo': phoneNo,
+            'staffDepartment': department,
+        };
+
+        res.json(visitorAppointmentInfo);
+    } catch (error) {
+        res.status(500).send('Error retrieving appointment information');
+    }
+});
+
+
+/**
 * @swagger
 * /staff-members:
 *   get:
