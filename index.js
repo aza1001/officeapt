@@ -297,6 +297,70 @@ app.post('/login-staff', async (req, res) => {
       });
 });
 
+/**
+* @swagger
+* /change-password:
+*   put:
+*     summary: Change staff password
+*     tags: [Staff]
+*     security:
+*       - bearerAuth: []
+*     requestBody:
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             properties:
+*               currentPassword:
+*                 type: string
+*               newPassword:
+*                 type: string
+*     responses:
+*       200:
+*         description: Password changed successfully
+*       401:
+*         description: Invalid current password
+*       403:
+*         description: Invalid or unauthorized token
+*       500:
+*         description: Error changing password
+*/
+
+// Change staff password
+app.put('/change-password', authenticateToken, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    const { role, username } = req.user;
+  
+    if (role !== 'staff') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    // Find the staff member by username
+    const staffMember = await staffDB.findOne({ username });
+  
+    if (!staffMember) {
+      return res.status(401).send('Invalid current password');
+    }
+  
+    // Check if the current password is correct
+    const passwordMatch = await bcrypt.compare(currentPassword, staffMember.password);
+  
+    if (!passwordMatch) {
+      return res.status(401).send('Invalid current password');
+    }
+  
+    // Update the password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    staffDB
+      .updateOne({ username }, { $set: { password: hashedNewPassword } })
+      .then(() => {
+        res.status(200).send('Password changed successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error changing password');
+      });
+  });
+  
 
 /**
  * @swagger
