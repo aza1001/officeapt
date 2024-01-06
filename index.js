@@ -734,16 +734,11 @@ app.get('/public-visitor-appointment/:name', async (req, res) => {
             return res.status(404).send('Appointment not found');
         }
 
-        const { time, date, verification, staff: { username } } = appointment;
+        const { time, date, purpose, verification, staff: { username } } = appointment;
 
         if (!verification) {
-            // If verification is not true, only show staff name
-            const visitorAppointmentInfo = {
-                'visitorName': name,
-                'staffName': username,
-            };
-
-            return res.json(visitorAppointmentInfo);
+            // If verification is not true, only show the content of the appointment database with the exact visitor's name
+            return res.json(appointment);
         }
 
         const staffMember = await staffDB.findOne({ username });
@@ -758,6 +753,7 @@ app.get('/public-visitor-appointment/:name', async (req, res) => {
             'visitorName': name,
             'time': time,
             'date': date,
+            'purpose': purpose,
             'verification': verification,
             'staffName': username,
             'staffPhoneNo': phoneNo,
