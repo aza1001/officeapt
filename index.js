@@ -738,65 +738,6 @@ app.get('/appointments', async (req, res) => {
     });
 
 /**
- * @swagger
- * /visitor-appointment/{name}:
- *   get:
- *     summary: Get visitor's appointment information by name
- *     tags: [Security]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: name
- *         in: path
- *         description: Visitor's name
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Visitor's appointment information
- *       403:
- *         description: Invalid or unauthorized token
- *       404:
- *         description: Appointment not found
- *       500:
- *         description: Error retrieving appointment information
- */
-
-// Get visitor's appointment information by name
-app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
-    const { name } = req.params;
-    const { role } = req.user;
-  
-    if (role !== 'security') {
-      return res.status(403).send('Invalid or unauthorized token');
-    }
-  
-    // Find the appointment by name
-    const appointment = await appointmentDB.findOne({ name });
-  
-    if (!appointment) {
-      return res.status(404).send('Appointment not found');
-    }
-  
-    // Extract relevant information for display
-    const visitorInfo = {
-      name: appointment.name,
-      time: appointment.time,
-      date: appointment.date,
-      verification: appointment.verification,
-      staff: {
-        name: staff.username,
-        phoneNo: staff.phoneNo,
-        department: staff.department,
-      },
-    };
-  
-    res.json(visitorInfo);
-});
-
-
-/**
 * @swagger
 * /staff-members:
 *   get:
