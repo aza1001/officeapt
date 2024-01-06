@@ -221,8 +221,7 @@ app.post('/register-staff', authenticateToken, async (req, res) => {
       });
   });
   
-
-  /**
+/**
 * @swagger
 * /login-staff:
 *   post:
@@ -248,6 +247,15 @@ app.post('/register-staff', authenticateToken, async (req, res) => {
 *               properties:
 *                 token:
 *                   type: string
+*                 userDetails:
+*                   type: object
+*                   properties:
+*                     fullName:
+*                       type: string
+*                     department:
+*                       type: string
+*                     phoneNo:
+*                       type: string
 *       401:
 *         description: Invalid credentials
 *       500:
@@ -271,15 +279,24 @@ app.post('/login-staff', async (req, res) => {
     }
   
     const token = jwt.sign({ username, role: 'staff' }, secretKey);
+  
+    // Include additional details in the response
+    const userDetails = {
+      fullName: staff.fullName,
+      department: staff.department,
+      phoneNo: staff.phoneNo,
+    };
+
     staffDB
       .updateOne({ username }, { $set: { token } })
       .then(() => {
-        res.status(200).json({ token });
+        res.status(200).json({ token, userDetails });
       })
       .catch(() => {
         res.status(500).send('Error storing token');
       });
-  });
+});
+
 
 /**
  * @swagger
