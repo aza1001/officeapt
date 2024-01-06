@@ -738,61 +738,63 @@ app.get('/appointments', async (req, res) => {
     });
 
 /**
-* @swagger
-* /appointments:
-*   get:
-*     summary: View appointments with limited information (accessible only by security)
-*     tags: [Security]
-*     security:
-*       - bearerAuth: []
-*     parameters:
-*       - name: name
-*         in: query
-*         description: Filter appointments by name
-*         required: false
-*         schema:
-*           type: string
-*     responses:
-*       200:
-*         description: List of appointments with limited information
-*       403:
-*         description: Invalid or unauthorized token
-*       500:
-*         description: Error retrieving appointments
-*/
+ * @swagger
+ * /visitor-appointment/{name}:
+ *   get:
+ *     summary: Get visitor's appointment information by name
+ *     tags: [Security]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: name
+ *         in: path
+ *         description: Visitor's name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Visitor's appointment information
+ *       403:
+ *         description: Invalid or unauthorized token
+ *       404:
+ *         description: Appointment not found
+ *       500:
+ *         description: Error retrieving appointment information
+ */
 
-// View appointments with limited information (accessible only by security)
-app.get('/appointments', authenticateToken, async (req, res) => {
-    const { name } = req.query;
-    const { role, username } = req.user;
+// Get visitor's appointment information by name
+app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
+    const { name } = req.params;
+    const { role } = req.user;
   
     if (role !== 'security') {
       return res.status(403).send('Invalid or unauthorized token');
     }
   
-    const filter = name ? { 'staff.username': username, name: { $regex: name, $options: 'i' } } : { 'staff.username': username };
+    // Find the appointment by name
+    const appointment = await appointmentDB.findOne({ name });
   
-    try {
-      const appointments = await appointmentDB.find(filter).toArray();
-  
-      // Customize the response to include limited information
-      const formattedAppointments = appointments.map(appointment => ({
-        'visitor name': appointment.name,
-        date: appointment.date,
-        time: appointment.time,
-        'verification status': appointment.verification,
-        'staff name': appointment.staff.username,
-        'staff phone no': appointment.staff.phoneNo,
-        'staff department': appointment.staff.department,
-      }));
-  
-      res.json(formattedAppointments);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error retrieving appointments');
+    if (!appointment) {
+      return res.status(404).send('Appointment not found');
     }
-  });
-    
+  
+    // Extract relevant information for display
+    const visitorInfo = {
+      name: appointment.name,
+      time: appointment.time,
+      date: appointment.date,
+      verification: appointment.verification,
+      staff: {
+        name: appointment.staff.username,
+        phoneNo: appointment.staff.phoneNo,
+        department: appointment.staff.department,
+      },
+    };
+  
+    res.json(visitorInfo);
+});
+
 
 /**
 * @swagger
