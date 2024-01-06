@@ -280,6 +280,65 @@ app.post('/login-staff', async (req, res) => {
         res.status(500).send('Error storing token');
       });
   });
+
+/**
+ * @swagger
+ * /update-staff-info:
+ *   put:
+ *     summary: Update staff information
+ *     tags: [Staff]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *               phoneNo:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Staff information updated successfully
+ *       403:
+ *         description: Invalid or unauthorized token
+ *       404:
+ *         description: Staff not found
+ *       500:
+ *         description: Error updating staff information
+ */
+
+// Update staff information
+app.put('/update-staff-info', authenticateToken, async (req, res) => {
+    const { fullName, phoneNo, department } = req.body;
+    const { role, username } = req.user;
+  
+    if (role !== 'staff') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    // Find the staff member by username
+    const staffMember = await staffDB.findOne({ username });
+  
+    if (!staffMember) {
+      return res.status(404).send('Staff not found');
+    }
+  
+    // Update the staff information
+    staffDB
+      .updateOne({ username }, { $set: { fullName, phoneNo, department } })
+      .then(() => {
+        res.status(200).send('Staff information updated successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error updating staff information');
+      });
+  });
+  
   
   /**
   * @swagger
