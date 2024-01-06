@@ -754,7 +754,7 @@ app.get('/appointments', async (req, res) => {
 *           type: string
 *     responses:
 *       200:
-*         description: visitor's appointment information
+*         description: List of appointments with limited information
 *       403:
 *         description: Invalid or unauthorized token
 *       500:
@@ -772,28 +772,27 @@ app.get('/appointments', authenticateToken, async (req, res) => {
   
     const filter = name ? { 'staff.username': username, name: { $regex: name, $options: 'i' } } : { 'staff.username': username };
   
-    appointmentDB
-      .find(filter)
-      .toArray()
-      .then((appointments) => {
-        // Customize the response to include limited information
-        const formattedAppointments = appointments.map(appointment => ({
-          'visitor name': appointment.name,
-          date: appointment.date,
-          time: appointment.time,
-          'verification status': appointment.verification,
-          'staff name': appointment.staff.username,
-          'staff phone no': appointment.staff.phoneNo,
-          'staff department': appointment.staff.department,
-        }));
+    try {
+      const appointments = await appointmentDB.find(filter).toArray();
   
-        res.json(formattedAppointments);
-      })
-      .catch((error) => {
-        res.status(500).send('Error retrieving appointments');
-      });
+      // Customize the response to include limited information
+      const formattedAppointments = appointments.map(appointment => ({
+        'visitor name': appointment.name,
+        date: appointment.date,
+        time: appointment.time,
+        'verification status': appointment.verification,
+        'staff name': appointment.staff.username,
+        'staff phone no': appointment.staff.phoneNo,
+        'staff department': appointment.staff.department,
+      }));
+  
+      res.json(formattedAppointments);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error retrieving appointments');
+    }
   });
-  
+    
 
 /**
 * @swagger
