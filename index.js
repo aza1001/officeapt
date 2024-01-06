@@ -703,12 +703,10 @@ app.put('/appointments/:name', authenticateToken, async (req, res) => {
  
 /**
  * @swagger
- * /visitor-appointment/{name}:
+ * /public-visitor-appointment/{name}:
  *   get:
- *     summary: Get visitor's appointment information
- *     tags: [Security]
- *     security:
- *       - bearerAuth: []
+ *     summary: Get visitor's own appointment information
+ *     tags: [Public]
  *     parameters:
  *       - name: name
  *         in: path
@@ -719,17 +717,15 @@ app.put('/appointments/:name', authenticateToken, async (req, res) => {
  *     responses:
  *       200:
  *         description: Visitor's appointment information
- *       403:
- *         description: Invalid or unauthorized token
  *       404:
  *         description: Appointment not found
  *       500:
  *         description: Error retrieving appointment information
  */
 
-// Get visitor's appointment information
-app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
-    // ... (existing code)
+// Get visitor's own appointment information
+app.get('/public-visitor-appointment/:name', async (req, res) => {
+    const { name } = req.params;
 
     try {
         const appointment = await appointmentDB.findOne({ name });
@@ -738,7 +734,7 @@ app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
             return res.status(404).send('Appointment not found');
         }
 
-        const { time, date, verification, staff: { username, phoneNo, department } } = appointment;
+        const { time, date, verification, staff: { username } } = appointment;
 
         if (!verification) {
             // If verification is not true, only show staff name
@@ -756,7 +752,7 @@ app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
             return res.status(404).send('Staff member not found');
         }
 
-        const { phoneNo: staffPhoneNo, department: staffDepartment } = staffMember;
+        const { phoneNo, department } = staffMember;
 
         const visitorAppointmentInfo = {
             'visitorName': name,
@@ -764,8 +760,8 @@ app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
             'date': date,
             'verification': verification,
             'staffName': username,
-            'staffPhoneNo': staffPhoneNo,
-            'staffDepartment': staffDepartment,
+            'staffPhoneNo': phoneNo,
+            'staffDepartment': department,
         };
 
         res.json(visitorAppointmentInfo);
@@ -774,7 +770,7 @@ app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
     }
 });
 
-
+  
 /**
  * @swagger
  * /visitor-appointment/{name}:
