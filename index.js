@@ -638,12 +638,10 @@ app.get('/staff-appointments/:username', authenticateToken, async (req, res) => 
 
 /**
  * @swagger
- * /appointments/{name}:
- *   put:
- *     summary: Update appointment verification by visitor name
- *     tags: [Staff]
- *     security:
- *       - bearerAuth: []
+ * /public-visitor-appointment/{name}:
+ *   get:
+ *     summary: Get visitor's own appointment information
+ *     tags: [Public]
  *     parameters:
  *       - name: name
  *         in: path
@@ -651,64 +649,60 @@ app.get('/staff-appointments/:username', authenticateToken, async (req, res) => 
  *         required: true
  *         schema:
  *           type: string
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               verification:
- *                 type: boolean
  *     responses:
  *       200:
- *         description: Appointment verification updated successfully
- *       403:
- *         description: Invalid or unauthorized token
+ *         description: Visitor's appointment information
  *       404:
  *         description: Appointment not found
  *       500:
- *         description: Error updating appointment verification
+ *         description: Error retrieving appointment information
  */
 
-// Update appointment verification by visitor name
-app.put('/appointments/:name', authenticateToken, async (req, res) => {
+// Get visitor's own appointment information
+app.get('/public-visitor-appointment/:name', async (req, res) => {
   const { name } = req.params;
-  const { verification } = req.body;
-  const { role, username: authenticatedUsername } = req.user;
 
-  if (role !== 'staff') {
-    return res.status(403).send('Invalid or unauthorized token');
+  try {
+      const appointment = await appointmentDB.findOne({ name });
+
+      if (!appointment) {
+          return res.status(404).send('Appointment not found');
+      }
+
+      const { time, date, purpose, verification, staff: { username, uniqueCode } } = appointment;
+
+      if (!verification) {
+          // If verification is not true, only show the content of the appointment database with the exact visitor's name
+          return res.json(appointment);
+      }
+
+      const staffMember = await staffDB.findOne({ username });
+
+      if (!staffMember) {
+          return res.status(404).send('Staff member not found');
+      }
+
+      const { phoneNo, department } = staffMember;
+
+      const visitorAppointmentInfo = {
+          'visitorName': name,
+          'time': time,
+          'date': date,
+          'purpose': purpose,
+          'verification': verification,
+          'uniqueCode': uniqueCode, // Include the unique code if the appointment is verified
+          'staffName': username,
+          'staffPhoneNo': phoneNo,
+          'staffDepartment': department,
+      };
+
+      res.json(visitorAppointmentInfo);
+  } catch (error) {
+      res.status(500).send('Error retrieving appointment information');
   }
-
-  // Find the appointment by name and staff username
-  const appointment = await appointmentDB.findOne({ name, 'staff.username': authenticatedUsername });
-
-  if (!appointment) {
-    return res.status(404).send('Appointment not found');
-  }
-
-  // Generate a unique 4-digit code
-  const uniqueCode = generateUniqueCode();
-
-  // Update the verification and unique code only if the staff member matches the creator
-  appointmentDB
-    .updateOne({ name, 'staff.username': authenticatedUsername }, { $set: { verification, uniqueCode } })
-    .then(() => {
-      res.status(200).json({ message: 'Appointment verification updated successfully', uniqueCode });
-    })
-    .catch((error) => {
-      res.status(500).send('Error updating appointment verification');
-    });
 });
 
-// Function to generate a random 4-digit code
-function generateUniqueCode() {
-const min = 1000;
-const max = 9999;
-return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
-  
 /**
  * @swagger
  * /appointments/{name}:
@@ -784,76 +778,48 @@ app.delete('/appointments/:name', authenticateToken, async (req, res) => {
  *         description: Error retrieving appointment information
  */
 
-/**
- * @swagger
- * /appointments:
- *   post:
- *     summary: Create appointment
- *     tags: [Public]
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               company:
- *                 type: string
- *               purpose:
- *                 type: string
- *               phoneNo:
- *                 type: string
- *               date:
- *                 type: string
- *               time:
- *                 type: string
- *               staff:
- *                 type: object
- *                 properties:
- *                   username:
- *                     type: string
- *                   uniqueCode:   // Add this line for uniqueCode
- *                     type: string
- *     responses:
- *       200:
- *         description: Appointment created successfully
- *       500:
- *         description: Error creating appointment
- */
+// Get visitor's own appointment information
+app.get('/public-visitor-appointment/:name', async (req, res) => {
+    const { name } = req.params;
 
-// Create appointment
-app.post('/appointments', async (req, res) => {
-  const {
-    name,
-    company,
-    purpose,
-    phoneNo,
-    date,
-    time,
-    staff: { username, uniqueCode }, // Include uniqueCode in the request body
-  } = req.body;
+    try {
+        const appointment = await appointmentDB.findOne({ name });
 
-  const appointment = {
-    name,
-    company,
-    purpose,
-    phoneNo,
-    date,
-    time,
-    staff: { username, uniqueCode }, // Include uniqueCode in the appointment
-  };
+        if (!appointment) {
+            return res.status(404).send('Appointment not found');
+        }
 
-  appointmentDB
-    .insertOne(appointment)
-    .then(() => {
-      res.status(200).send('Appointment created successfully');
-    })
-    .catch((error) => {
-      res.status(500).send('Error creating appointment');
-    });
+        const { time, date, purpose, verification, staff: { username } } = appointment;
+
+        if (!verification) {
+            // If verification is not true, only show the content of the appointment database with the exact visitor's name
+            return res.json(appointment);
+        }
+
+        const staffMember = await staffDB.findOne({ username });
+
+        if (!staffMember) {
+            return res.status(404).send('Staff member not found');
+        }
+
+        const { phoneNo, department } = staffMember;
+
+        const visitorAppointmentInfo = {
+            'visitorName': name,
+            'time': time,
+            'date': date,
+            'purpose': purpose,
+            'verification': verification,
+            'staffName': username,
+            'staffPhoneNo': phoneNo,
+            'staffDepartment': department,
+        };
+
+        res.json(visitorAppointmentInfo);
+    } catch (error) {
+        res.status(500).send('Error retrieving appointment information');
+    }
 });
-
 
   
 /**
