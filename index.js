@@ -848,46 +848,47 @@ app.get('/public-visitor-appointment/:name', async (req, res) => {
  *         description: Error retrieving appointment information
  */
 
-// Get visitor's appointment information
-app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
-    const { name } = req.params;
-    const { role } = req.user;
+// Get visitor's appointment information by uniqueCode
+app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) => {
+  const { uniqueCode } = req.params;
+  const { role } = req.user;
 
-    if (role !== 'security') {
-        return res.status(403).send('Invalid or unauthorized token');
-    }
+  if (role !== 'security') {
+      return res.status(403).send('Invalid or unauthorized token');
+  }
 
-    try {
-        const appointment = await appointmentDB.findOne({ name });
+  try {
+      const appointment = await appointmentDB.findOne({ 'verification': true, 'staff.uniqueCode': uniqueCode });
 
-        if (!appointment) {
-            return res.status(404).send('Appointment not found');
-        }
+      if (!appointment) {
+          return res.status(404).send('Appointment not found');
+      }
 
-        const { time, date, verification, staff: { username } } = appointment;
-        const staffMember = await staffDB.findOne({ username });
+      const { name, time, date, verification, staff: { username } } = appointment;
+      const staffMember = await staffDB.findOne({ username });
 
-        if (!staffMember) {
-            return res.status(404).send('Staff member not found');
-        }
+      if (!staffMember) {
+          return res.status(404).send('Staff member not found');
+      }
 
-        const { phoneNo, department } = staffMember;
+      const { phoneNo, department } = staffMember;
 
-        const visitorAppointmentInfo = {
-            'visitorName': name,
-            'time': time,
-            'date': date,
-            'verification': verification,
-            'staffName': username,
-            'staffPhoneNo': phoneNo,
-            'staffDepartment': department,
-        };
+      const visitorAppointmentInfo = {
+          'visitorName': name,
+          'time': time,
+          'date': date,
+          'verification': verification,
+          'staffName': username,
+          'staffPhoneNo': phoneNo,
+          'staffDepartment': department,
+      };
 
-        res.json(visitorAppointmentInfo);
-    } catch (error) {
-        res.status(500).send('Error retrieving appointment information');
-    }
+      res.json(visitorAppointmentInfo);
+  } catch (error) {
+      res.status(500).send('Error retrieving appointment information');
+  }
 });
+
 
 
 /**
