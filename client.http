@@ -26,7 +26,8 @@ Content-Type: application/json
 
 {
   "username": "bob",
-  "password": "123" 
+  "password": "123" ,
+  "registrationCode" : "2125"
 }
 
 ###
@@ -37,8 +38,8 @@ POST https://officeapt.azurewebsites.net/login-security
 Content-Type: application/json
 
 {
-  "username": "bob",
-  "password": "123" 
+  "username": "azizah",
+  "password": "zainal" 
 }
 
 ###
