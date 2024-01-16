@@ -781,7 +781,7 @@ app.delete('/appointments/:name', authenticateToken, async (req, res) => {
  *         description: Error retrieving appointment information
  */
 
-// Get visitor's appointment information
+// Get visitor's appointment information by uniqueCode
 app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) => {
   const { uniqueCode } = req.params;
   const { role } = req.user;
@@ -791,7 +791,7 @@ app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) 
   }
 
   try {
-      const appointment = await appointmentDB.findOne({ 'appointments.uniqueCode': uniqueCode });
+      const appointment = await appointmentDB.findOne({ 'verification': true, 'uniqueCode': uniqueCode });
 
       if (!appointment) {
           return res.status(404).send('Appointment not found');
@@ -807,7 +807,7 @@ app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) 
       const { phoneNo, department } = staffMember;
 
       const visitorAppointmentInfo = {
-          'visitorName': appointment.name,
+          'uniqueCode': uniqueCode,
           'time': time,
           'date': date,
           'verification': verification,
@@ -821,7 +821,6 @@ app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) 
       res.status(500).send('Error retrieving appointment information');
   }
 });
-
 
 
 /**
