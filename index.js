@@ -11,7 +11,26 @@ app.use(express.json())
 const port = process.env.PORT || 3000;
 const secretKey = 'A2FA0ff1c34pt';
 
-// MongoDB connection URL with username & password
+////////////////CERT
+const credentials = 'C:/Users/HP/Desktop/officeapt/X509-cert-2696330171953200812.pem';
+const client = new mongodb.MongoClient('mongodb+srv://officevms.tilw1nt.mongodb.net/?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority', {
+  tlsCertificateKeyFile: credentials,
+  serverApi: mongodb.ServerApiVersion.v1
+});
+// MongoDB connection
+client.connect()
+  .then(() => {
+    const db = client.db(dbName);
+    staffDB = db.collection(staffCollection);
+    securityDB = db.collection(securityCollection);
+    appointmentDB = db.collection(appointmentCollection);
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+  });
+
+/////////////////////////
+/*// MongoDB connection URL with username & password
 const mongoURL =
   'mongodb+srv://aza:0ff1ce4ptm3nt@officevms.tilw1nt.mongodb.net/?retryWrites=true&w=majority';
 // MongoDB connection
@@ -24,7 +43,7 @@ mongodb.MongoClient.connect(mongoURL, { useUnifiedTopology: true })
   })
   .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
-  });
+  });*/
 
 // MongoDB database and collections names
 const dbName = 'officevms';
