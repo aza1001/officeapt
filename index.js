@@ -184,68 +184,59 @@ function generateUniqueID(length) {
 
   return result;
 }
+
   
-/**
- * @swagger
- * /register-security:
- *   post:
- *     summary: Register security
- *     tags: [Security]
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               username:
- *                 type: string
- *               password:
- *                 type: string
- *               registrationCode:
- *                 type: string
- *     responses:
- *       200:
- *         description: Security registered successfully
- *       400:
- *         description: Invalid registration code
- *       409:
- *         description: Username already exists
- *       500:
- *         description: Error registering security
- */
-
-// Register security
-app.post('/register-security', async (req, res) => {
-  const { username, password, registrationCode } = req.body;
-
-  // Check if the provided registration code is correct
-  if (registrationCode !== "2125") {
-    return res.status(400).send('Invalid registration code');
-  }
-
-  const existingSecurity = await securityDB.findOne({ username });
-
-  if (existingSecurity) {
-    return res.status(409).send('Username already exists');
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const security = {
-    username,
-    password: hashedPassword,
-  };
-
-  securityDB
-    .insertOne(security)
-    .then(() => {
-      res.status(200).send('Security registered successfully');
-    })
-    .catch((error) => {
-      res.status(500).send('Error registering security');
-    });
-});
-
+  /**
+  * @swagger
+  * /register-security:
+  *   post:
+  *     summary: Register security
+  *     tags: [Security]
+  *     requestBody:
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:
+  *               username:
+  *                 type: string
+  *               password:
+  *                 type: string
+  *     responses:
+  *       200:
+  *         description: Security registered successfully
+  *       409:
+  *         description: Username already exists
+  *       500:
+  *         description: Error registering security
+  */
+  
+  // Register security
+  app.post('/register-security', async (req, res) => {
+    const { username, password } = req.body;
+  
+    const existingSecurity = await securityDB.findOne({ username });
+  
+    if (existingSecurity) {
+      return res.status(409).send('Username already exists');
+    }
+  
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    const security = {
+      username,
+      password: hashedPassword,
+    };
+  
+    securityDB
+      .insertOne(security)
+      .then(() => {
+        res.status(200).send('Security registered successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error registering security');
+      });
+  });
   
 /**
 * @swagger
@@ -282,8 +273,6 @@ app.post('/register-security', async (req, res) => {
 *                       type: string
 *                     phoneNo:
 *                       type: string
-*                     staffID:
-*                       type: string
 *       401:
 *         description: Invalid credentials
 *       500:
@@ -292,40 +281,38 @@ app.post('/register-security', async (req, res) => {
 
 // Staff login
 app.post('/login-staff', async (req, res) => {
-  const { username, password } = req.body;
+    const { username, password } = req.body;
+  
+    const staff = await staffDB.findOne({ username });
+  
+    if (!staff) {
+      return res.status(401).send('Invalid credentials');
+    }
+  
+    const passwordMatch = await bcrypt.compare(password, staff.password);
+  
+    if (!passwordMatch) {
+      return res.status(401).send('Invalid credentials');
+    }
+  
+    const token = jwt.sign({ username, role: 'staff' }, secretKey);
+  
+    // Include additional details in the response
+    const userDetails = {
+      fullName: staff.fullName,
+      department: staff.department,
+      phoneNo: staff.phoneNo,
+    };
 
-  const staff = await staffDB.findOne({ username });
-
-  if (!staff) {
-    return res.status(401).send('Invalid credentials');
-  }
-
-  const passwordMatch = await bcrypt.compare(password, staff.password);
-
-  if (!passwordMatch) {
-    return res.status(401).send('Invalid credentials');
-  }
-
-  const token = jwt.sign({ username, role: 'staff' }, secretKey);
-
-  // Include additional details in the response
-  const userDetails = {
-    fullName: staff.fullName,
-    department: staff.department,
-    phoneNo: staff.phoneNo,
-    staffID: staff.staffID, // Include the staff ID in the response
-  };
-
-  staffDB
-    .updateOne({ username }, { $set: { token } })
-    .then(() => {
-      res.status(200).json({ token, userDetails });
-    })
-    .catch(() => {
-      res.status(500).send('Error storing token');
-    });
+    staffDB
+      .updateOne({ username }, { $set: { token } })
+      .then(() => {
+        res.status(200).json({ token, userDetails });
+      })
+      .catch(() => {
+        res.status(500).send('Error storing token');
+      });
 });
-
 
 /**
 * @swagger
@@ -539,54 +526,44 @@ app.put('/update-staff-info', authenticateToken, async (req, res) => {
  *                 properties:
  *                   username:
  *                     type: string
- *                   staffID:
- *                     type: string
  *     responses:
  *       200:
  *         description: Appointment created successfully
- *       400:
- *         description: Invalid StaffID
  *       500:
  *         description: Error creating appointment
  */
 
 // Create appointment
 app.post('/appointments', async (req, res) => {
-  const {
-    name,
-    company,
-    purpose,
-    phoneNo,
-    date,
-    time,
-    staff: { username, staffID },
-  } = req.body;
+    const {
+      name,
+      company,
+      purpose,
+      phoneNo,
+      date,
+      time,
+      staff: { username },
+    } = req.body;
 
-  const staff = await staffDB.findOne({ username });
+    const appointment = {
+      name,
+      company,
+      purpose,
+      phoneNo,
+      date,
+      time,
+      staff: { username },
+    };
 
-  if (!staff || staff.staffID !== staffID) {
-    return res.status(400).send('Invalid StaffID');
-  }
-
-  const appointment = {
-    name,
-    company,
-    purpose,
-    phoneNo,
-    date,
-    time,
-    staff: { username },
-  };
-
-  appointmentDB
-    .insertOne(appointment)
-    .then(() => {
-      res.status(200).send('Appointment created successfully');
-    })
-    .catch((error) => {
-      res.status(500).send('Error creating appointment');
-    });
-});
+    appointmentDB
+      .insertOne(appointment)
+      .then(() => {
+        res.status(200).send('Appointment created successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error creating appointment');
+      });
+  });
 
 /**
 * @swagger
@@ -637,6 +614,111 @@ app.get('/staff-appointments/:username', authenticateToken, async (req, res) => 
 });
 
 /**
+* @swagger
+* /appointments/{name}:
+*   put:
+*     summary: Update appointment verification by visitor name
+*     tags: [Staff]
+*     security:
+*       - bearerAuth: []
+*     parameters:
+*       - name: name
+*         in: path
+*         description: Visitor's name
+*         required: true
+*         schema:
+*           type: string
+*     requestBody:
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             properties:
+*               verification:
+*                 type: boolean
+*     responses:
+*       200:
+*         description: Appointment verification updated successfully
+*       403:
+*         description: Invalid or unauthorized token
+*       404:
+*         description: Appointment not found
+*       500:
+*         description: Error updating appointment verification
+*/
+
+// Update appointment verification by visitor name
+app.put('/appointments/:name', authenticateToken, async (req, res) => {
+    const { name } = req.params;
+    const { verification } = req.body;
+    const { role, username: authenticatedUsername } = req.user;
+  
+    if (role !== 'staff') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    // Find the appointment by name and staff username
+    const appointment = await appointmentDB.findOne({ name, 'staff.username': authenticatedUsername });
+  
+    if (!appointment) {
+      return res.status(404).send('Appointment not found');
+    }
+  
+    // Update the verification only if the staff member matches the creator
+    appointmentDB
+      .updateOne({ name, 'staff.username': authenticatedUsername }, { $set: { verification } })
+      .then(() => {
+        res.status(200).send('Appointment verification updated successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error updating appointment verification');
+      });
+  });
+  
+  /**
+  * @swagger
+  * /appointments/{name}:
+  *   delete:
+  *     summary: Delete appointment
+  *     tags: [Staff]
+  *     security:
+  *       - bearerAuth: []
+  *     parameters:
+  *       - name: name
+  *         in: path
+  *         description: Visitor's name
+  *         required: true
+  *         schema:
+  *           type: string
+  *     responses:
+  *       200:
+  *         description: Appointment deleted successfully
+  *       403:
+  *         description: Invalid or unauthorized token
+  *       500:
+  *         description: Error deleting appointment
+  */
+  
+  // Delete appointment
+  app.delete('/appointments/:name', authenticateToken, async (req, res) => {
+    const { name } = req.params;
+    const { role } = req.user;
+  
+    if (role !== 'staff') {
+      return res.status(403).send('Invalid or unauthorized token');
+    }
+  
+    appointmentDB
+      .deleteOne({ name })
+      .then(() => {
+        res.status(200).send('Appointment deleted successfully');
+      })
+      .catch((error) => {
+        res.status(500).send('Error deleting appointment');
+      });
+  });
+ 
+/**
  * @swagger
  * /public-visitor-appointment/{name}:
  *   get:
@@ -660,113 +742,60 @@ app.get('/staff-appointments/:username', authenticateToken, async (req, res) => 
 
 // Get visitor's own appointment information
 app.get('/public-visitor-appointment/:name', async (req, res) => {
-  const { name } = req.params;
+    const { name } = req.params;
 
-  try {
-      const appointment = await appointmentDB.findOne({ name });
+    try {
+        const appointment = await appointmentDB.findOne({ name });
 
-      if (!appointment) {
-          return res.status(404).send('Appointment not found');
-      }
+        if (!appointment) {
+            return res.status(404).send('Appointment not found');
+        }
 
-      const { time, date, purpose, verification, uniqueCode, staff: { username } } = appointment;
+        const { time, date, purpose, verification, staff: { username } } = appointment;
 
-      if (!verification) {
-          // If verification is not true, only show the content of the appointment database with the exact visitor's name
-          return res.json(appointment);
-      }
+        if (!verification) {
+            // If verification is not true, only show the content of the appointment database with the exact visitor's name
+            return res.json(appointment);
+        }
 
-      const staffMember = await staffDB.findOne({ username });
+        const staffMember = await staffDB.findOne({ username });
 
-      if (!staffMember) {
-          return res.status(404).send('Staff member not found');
-      }
+        if (!staffMember) {
+            return res.status(404).send('Staff member not found');
+        }
 
-      const { phoneNo, department } = staffMember;
+        const { phoneNo, department } = staffMember;
 
-      const visitorAppointmentInfo = {
-          'visitorName': name,
-          'time': time,
-          'date': date,
-          'purpose': purpose,
-          'verification': verification,
-          'uniqueCode': uniqueCode, // Include the unique code if the appointment is verified
-          'staffName': username,
-          'staffPhoneNo': phoneNo,
-          'staffDepartment': department,
-      };
+        const visitorAppointmentInfo = {
+            'visitorName': name,
+            'time': time,
+            'date': date,
+            'purpose': purpose,
+            'verification': verification,
+            'staffName': username,
+            'staffPhoneNo': phoneNo,
+            'staffDepartment': department,
+        };
 
-      res.json(visitorAppointmentInfo);
-  } catch (error) {
-      res.status(500).send('Error retrieving appointment information');
-  }
+        res.json(visitorAppointmentInfo);
+    } catch (error) {
+        res.status(500).send('Error retrieving appointment information');
+    }
 });
 
-
+  
 /**
  * @swagger
- * /appointments/{name}:
- *   delete:
- *     summary: Delete appointment
- *     tags: [Staff]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - name: name
- *         in: path
- *         description: Visitor's name
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Appointment deleted successfully
- *       403:
- *         description: Invalid or unauthorized token
- *       404:
- *         description: Appointment not found
- *       500:
- *         description: Error deleting appointment
- */
-
-// Delete appointment
-app.delete('/appointments/:name', authenticateToken, async (req, res) => {
-  const { name } = req.params;
-  const { role, username } = req.user;
-
-  if (role !== 'staff') {
-    return res.status(403).send('Invalid or unauthorized token');
-  }
-
-  // Check if the staff (host) associated with the appointment is the same as the authenticated user
-  const appointment = await appointmentDB.findOne({ name, 'staff.username': username });
-
-  if (!appointment) {
-    return res.status(404).send('Appointment not found');
-  }
-
-  appointmentDB
-    .deleteOne({ name })
-    .then(() => {
-      res.status(200).send('Appointment deleted successfully');
-    })
-    .catch((error) => {
-      res.status(500).send('Error deleting appointment');
-    });
-}); 
-
-/**
- * @swagger
- * /visitor-appointment/{uniqueCode}:
+ * /visitor-appointment/{name}:
  *   get:
  *     summary: Get visitor's appointment information
  *     tags: [Security]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - name: uniqueCode
+ *       - name: name
  *         in: path
- *         description: Unique code associated with the appointment
+ *         description: Visitor's name
  *         required: true
  *         schema:
  *           type: string
@@ -781,45 +810,45 @@ app.delete('/appointments/:name', authenticateToken, async (req, res) => {
  *         description: Error retrieving appointment information
  */
 
-// Get visitor's appointment information using uniqueCode
-app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) => {
-  const { uniqueCode } = req.params;
-  const { role } = req.user;
+// Get visitor's appointment information
+app.get('/visitor-appointment/:name', authenticateToken, async (req, res) => {
+    const { name } = req.params;
+    const { role } = req.user;
 
-  if (role !== 'security') {
-      return res.status(403).send('Invalid or unauthorized token');
-  }
+    if (role !== 'security') {
+        return res.status(403).send('Invalid or unauthorized token');
+    }
 
-  try {
-      const appointment = await appointmentDB.findOne({ uniqueCode });
+    try {
+        const appointment = await appointmentDB.findOne({ name });
 
-      if (!appointment) {
-          return res.status(404).send('Appointment not found');
-      }
+        if (!appointment) {
+            return res.status(404).send('Appointment not found');
+        }
 
-      const { time, date, verification, staff: { username } } = appointment;
-      const staffMember = await staffDB.findOne({ username });
+        const { time, date, verification, staff: { username } } = appointment;
+        const staffMember = await staffDB.findOne({ username });
 
-      if (!staffMember) {
-          return res.status(404).send('Staff member not found');
-      }
+        if (!staffMember) {
+            return res.status(404).send('Staff member not found');
+        }
 
-      const { phoneNo, department } = staffMember;
+        const { phoneNo, department } = staffMember;
 
-      const visitorAppointmentInfo = {
-          'uniqueCode': uniqueCode,
-          'time': time,
-          'date': date,
-          'verification': verification,
-          'staffName': username,
-          'staffPhoneNo': phoneNo,
-          'staffDepartment': department,
-      };
+        const visitorAppointmentInfo = {
+            'visitorName': name,
+            'time': time,
+            'date': date,
+            'verification': verification,
+            'staffName': username,
+            'staffPhoneNo': phoneNo,
+            'staffDepartment': department,
+        };
 
-      res.json(visitorAppointmentInfo);
-  } catch (error) {
-      res.status(500).send('Error retrieving appointment information');
-  }
+        res.json(visitorAppointmentInfo);
+    } catch (error) {
+        res.status(500).send('Error retrieving appointment information');
+    }
 });
 
 
@@ -1028,6 +1057,3 @@ app.post('/test/register-staff', async (req, res) => {
         res.status(500).send('Error storing token');
       });
   });
-  
-
-  
