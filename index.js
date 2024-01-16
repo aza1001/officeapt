@@ -637,66 +637,77 @@ app.get('/staff-appointments/:username', authenticateToken, async (req, res) => 
 });
 
 /**
-* @swagger
-* /appointments/{name}:
-*   put:
-*     summary: Update appointment verification by visitor name
-*     tags: [Staff]
-*     security:
-*       - bearerAuth: []
-*     parameters:
-*       - name: name
-*         in: path
-*         description: Visitor's name
-*         required: true
-*         schema:
-*           type: string
-*     requestBody:
-*       content:
-*         application/json:
-*           schema:
-*             type: object
-*             properties:
-*               verification:
-*                 type: boolean
-*     responses:
-*       200:
-*         description: Appointment verification updated successfully
-*       403:
-*         description: Invalid or unauthorized token
-*       404:
-*         description: Appointment not found
-*       500:
-*         description: Error updating appointment verification
-*/
+ * @swagger
+ * /appointments/{name}:
+ *   put:
+ *     summary: Update appointment verification by visitor name
+ *     tags: [Staff]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: name
+ *         in: path
+ *         description: Visitor's name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               verification:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Appointment verification updated successfully
+ *       403:
+ *         description: Invalid or unauthorized token
+ *       404:
+ *         description: Appointment not found
+ *       500:
+ *         description: Error updating appointment verification
+ */
 
 // Update appointment verification by visitor name
 app.put('/appointments/:name', authenticateToken, async (req, res) => {
-    const { name } = req.params;
-    const { verification } = req.body;
-    const { role, username: authenticatedUsername } = req.user;
-  
-    if (role !== 'staff') {
-      return res.status(403).send('Invalid or unauthorized token');
-    }
-  
-    // Find the appointment by name and staff username
-    const appointment = await appointmentDB.findOne({ name, 'staff.username': authenticatedUsername });
-  
-    if (!appointment) {
-      return res.status(404).send('Appointment not found');
-    }
-  
-    // Update the verification only if the staff member matches the creator
-    appointmentDB
-      .updateOne({ name, 'staff.username': authenticatedUsername }, { $set: { verification } })
-      .then(() => {
-        res.status(200).send('Appointment verification updated successfully');
-      })
-      .catch((error) => {
-        res.status(500).send('Error updating appointment verification');
-      });
-  });
+  const { name } = req.params;
+  const { verification } = req.body;
+  const { role, username: authenticatedUsername } = req.user;
+
+  if (role !== 'staff') {
+    return res.status(403).send('Invalid or unauthorized token');
+  }
+
+  // Find the appointment by name and staff username
+  const appointment = await appointmentDB.findOne({ name, 'staff.username': authenticatedUsername });
+
+  if (!appointment) {
+    return res.status(404).send('Appointment not found');
+  }
+
+  // Generate a unique 4-digit code
+  const uniqueCode = generateUniqueCode();
+
+  // Update the verification and unique code only if the staff member matches the creator
+  appointmentDB
+    .updateOne({ name, 'staff.username': authenticatedUsername }, { $set: { verification, uniqueCode } })
+    .then(() => {
+      res.status(200).json({ message: 'Appointment verification updated successfully', uniqueCode });
+    })
+    .catch((error) => {
+      res.status(500).send('Error updating appointment verification');
+    });
+});
+
+// Function to generate a random 4-digit code
+function generateUniqueCode() {
+const min = 1000;
+const max = 9999;
+return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
   
 /**
  * @swagger
