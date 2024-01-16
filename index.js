@@ -766,7 +766,7 @@ app.delete('/appointments/:name', authenticateToken, async (req, res) => {
  *     parameters:
  *       - name: uniqueCode
  *         in: path
- *         description: Visitor's unique code
+ *         description: Unique code associated with the appointment
  *         required: true
  *         schema:
  *           type: string
@@ -781,7 +781,7 @@ app.delete('/appointments/:name', authenticateToken, async (req, res) => {
  *         description: Error retrieving appointment information
  */
 
-// Get visitor's appointment information by uniqueCode
+// Get visitor's appointment information using uniqueCode
 app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) => {
   const { uniqueCode } = req.params;
   const { role } = req.user;
@@ -791,7 +791,7 @@ app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) 
   }
 
   try {
-      const appointment = await appointmentDB.findOne({ 'verification': true, 'uniqueCode': uniqueCode });
+      const appointment = await appointmentDB.findOne({ uniqueCode });
 
       if (!appointment) {
           return res.status(404).send('Appointment not found');
