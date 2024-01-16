@@ -791,7 +791,7 @@ app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) 
   }
 
   try {
-      const appointment = await appointmentDB.findOne({ 'staff.uniqueCode': uniqueCode });
+      const appointment = await appointmentDB.findOne({ 'appointments.uniqueCode': uniqueCode });
 
       if (!appointment) {
           return res.status(404).send('Appointment not found');
