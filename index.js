@@ -669,7 +669,7 @@ app.get('/public-visitor-appointment/:name', async (req, res) => {
           return res.status(404).send('Appointment not found');
       }
 
-      const { time, date, purpose, verification, staff: { username, uniqueCode } } = appointment;
+      const { time, date, purpose, verification, uniqueCode, staff: { username } } = appointment;
 
       if (!verification) {
           // If verification is not true, only show the content of the appointment database with the exact visitor's name
