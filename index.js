@@ -9,21 +9,11 @@ const app = express()
 app.use(express.json())
 
 const port = process.env.PORT || 3000;
-const secretKey = 'officeapt';
+const secretKey = 'A2FA0ff1c34pt';
 
 // MongoDB connection URL with username & password
 const mongoURL =
   'mongodb+srv://aza:0ff1ce4ptm3nt@officevms.tilw1nt.mongodb.net/?retryWrites=true&w=majority';
-
-// MongoDB database and collections names
-const dbName = 'officevms';
-const staffCollection = 'staff';
-const securityCollection = 'security';
-const appointmentCollection = 'appointments';
-
-// Middleware for parsing JSON data
-app.use(express.json());
-
 // MongoDB connection
 mongodb.MongoClient.connect(mongoURL, { useUnifiedTopology: true })
   .then((client) => {
@@ -35,6 +25,17 @@ mongodb.MongoClient.connect(mongoURL, { useUnifiedTopology: true })
   .catch((err) => {
     console.error('Error connecting to MongoDB:', err);
   });
+
+// MongoDB database and collections names
+const dbName = 'officevms';
+const staffCollection = 'staff';
+const securityCollection = 'security';
+const appointmentCollection = 'appointments';
+
+// Middleware for parsing JSON data
+app.use(express.json());
+
+
 
 // Middleware for authentication and authorization
 const authenticateToken = (req, res, next) => {
