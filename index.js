@@ -699,48 +699,58 @@ app.put('/appointments/:name', authenticateToken, async (req, res) => {
       });
   });
   
-  /**
-  * @swagger
-  * /appointments/{name}:
-  *   delete:
-  *     summary: Delete appointment
-  *     tags: [Staff]
-  *     security:
-  *       - bearerAuth: []
-  *     parameters:
-  *       - name: name
-  *         in: path
-  *         description: Visitor's name
-  *         required: true
-  *         schema:
-  *           type: string
-  *     responses:
-  *       200:
-  *         description: Appointment deleted successfully
-  *       403:
-  *         description: Invalid or unauthorized token
-  *       500:
-  *         description: Error deleting appointment
-  */
-  
-  // Delete appointment
-  app.delete('/appointments/:name', authenticateToken, async (req, res) => {
-    const { name } = req.params;
-    const { role } = req.user;
-  
-    if (role !== 'staff') {
-      return res.status(403).send('Invalid or unauthorized token');
-    }
-  
-    appointmentDB
-      .deleteOne({ name })
-      .then(() => {
-        res.status(200).send('Appointment deleted successfully');
-      })
-      .catch((error) => {
-        res.status(500).send('Error deleting appointment');
-      });
-  });
+/**
+ * @swagger
+ * /appointments/{name}:
+ *   delete:
+ *     summary: Delete appointment
+ *     tags: [Staff]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: name
+ *         in: path
+ *         description: Visitor's name
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Appointment deleted successfully
+ *       403:
+ *         description: Invalid or unauthorized token
+ *       404:
+ *         description: Appointment not found
+ *       500:
+ *         description: Error deleting appointment
+ */
+
+// Delete appointment
+app.delete('/appointments/:name', authenticateToken, async (req, res) => {
+  const { name } = req.params;
+  const { role, username } = req.user;
+
+  if (role !== 'staff') {
+    return res.status(403).send('Invalid or unauthorized token');
+  }
+
+  // Check if the staff (host) associated with the appointment is the same as the authenticated user
+  const appointment = await appointmentDB.findOne({ name, 'staff.username': username });
+
+  if (!appointment) {
+    return res.status(404).send('Appointment not found');
+  }
+
+  appointmentDB
+    .deleteOne({ name })
+    .then(() => {
+      res.status(200).send('Appointment deleted successfully');
+    })
+    .catch((error) => {
+      res.status(500).send('Error deleting appointment');
+    });
+});
+
  
 /**
  * @swagger
