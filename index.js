@@ -753,87 +753,20 @@ app.delete('/appointments/:name', authenticateToken, async (req, res) => {
     .catch((error) => {
       res.status(500).send('Error deleting appointment');
     });
-});
+}); 
 
- 
 /**
  * @swagger
- * /public-visitor-appointment/{name}:
- *   get:
- *     summary: Get visitor's own appointment information
- *     tags: [Public]
- *     parameters:
- *       - name: name
- *         in: path
- *         description: Visitor's name
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Visitor's appointment information
- *       404:
- *         description: Appointment not found
- *       500:
- *         description: Error retrieving appointment information
- */
-
-// Get visitor's own appointment information
-app.get('/public-visitor-appointment/:name', async (req, res) => {
-    const { name } = req.params;
-
-    try {
-        const appointment = await appointmentDB.findOne({ name });
-
-        if (!appointment) {
-            return res.status(404).send('Appointment not found');
-        }
-
-        const { time, date, purpose, verification, staff: { username } } = appointment;
-
-        if (!verification) {
-            // If verification is not true, only show the content of the appointment database with the exact visitor's name
-            return res.json(appointment);
-        }
-
-        const staffMember = await staffDB.findOne({ username });
-
-        if (!staffMember) {
-            return res.status(404).send('Staff member not found');
-        }
-
-        const { phoneNo, department } = staffMember;
-
-        const visitorAppointmentInfo = {
-            'visitorName': name,
-            'time': time,
-            'date': date,
-            'purpose': purpose,
-            'verification': verification,
-            'staffName': username,
-            'staffPhoneNo': phoneNo,
-            'staffDepartment': department,
-        };
-
-        res.json(visitorAppointmentInfo);
-    } catch (error) {
-        res.status(500).send('Error retrieving appointment information');
-    }
-});
-
-  
-/**
- * @swagger
- * /visitor-appointment/{name}:
+ * /visitor-appointment/{uniqueCode}:
  *   get:
  *     summary: Get visitor's appointment information
  *     tags: [Security]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - name: name
+ *       - name: uniqueCode
  *         in: path
- *         description: Visitor's name
+ *         description: Visitor's unique code
  *         required: true
  *         schema:
  *           type: string
@@ -848,7 +781,7 @@ app.get('/public-visitor-appointment/:name', async (req, res) => {
  *         description: Error retrieving appointment information
  */
 
-// Get visitor's appointment information by uniqueCode
+// Get visitor's appointment information
 app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) => {
   const { uniqueCode } = req.params;
   const { role } = req.user;
@@ -858,13 +791,13 @@ app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) 
   }
 
   try {
-      const appointment = await appointmentDB.findOne({ 'verification': true, 'staff.uniqueCode': uniqueCode });
+      const appointment = await appointmentDB.findOne({ 'staff.uniqueCode': uniqueCode });
 
       if (!appointment) {
           return res.status(404).send('Appointment not found');
       }
 
-      const { name, time, date, verification, staff: { username } } = appointment;
+      const { time, date, verification, staff: { username } } = appointment;
       const staffMember = await staffDB.findOne({ username });
 
       if (!staffMember) {
@@ -874,7 +807,7 @@ app.get('/visitor-appointment/:uniqueCode', authenticateToken, async (req, res) 
       const { phoneNo, department } = staffMember;
 
       const visitorAppointmentInfo = {
-          'visitorName': name,
+          'visitorName': appointment.name,
           'time': time,
           'date': date,
           'verification': verification,
