@@ -185,58 +185,67 @@ function generateUniqueID(length) {
   return result;
 }
 
-  
-  /**
-  * @swagger
-  * /register-security:
-  *   post:
-  *     summary: Register security
-  *     tags: [Security]
-  *     requestBody:
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             properties:
-  *               username:
-  *                 type: string
-  *               password:
-  *                 type: string
-  *     responses:
-  *       200:
-  *         description: Security registered successfully
-  *       409:
-  *         description: Username already exists
-  *       500:
-  *         description: Error registering security
-  */
-  
-  // Register security
-  app.post('/register-security', async (req, res) => {
-    const { username, password } = req.body;
-  
-    const existingSecurity = await securityDB.findOne({ username });
-  
-    if (existingSecurity) {
-      return res.status(409).send('Username already exists');
-    }
-  
-    const hashedPassword = await bcrypt.hash(password, 10);
-  
-    const security = {
-      username,
-      password: hashedPassword,
-    };
-  
-    securityDB
-      .insertOne(security)
-      .then(() => {
-        res.status(200).send('Security registered successfully');
-      })
-      .catch((error) => {
-        res.status(500).send('Error registering security');
-      });
-  });
+/**
+ * @swagger
+ * /register-security:
+ *   post:
+ *     summary: Register security
+ *     tags: [Security]
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               registrationCode:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Security registered successfully
+ *       400:
+ *         description: Invalid registration code
+ *       409:
+ *         description: Username already exists
+ *       500:
+ *         description: Error registering security
+ */
+
+// Register security
+app.post('/register-security', async (req, res) => {
+  const { username, password, registrationCode } = req.body;
+
+  // Check if the provided registration code is correct
+  if (registrationCode !== "2125") {
+    return res.status(400).send('Invalid registration code');
+  }
+
+  const existingSecurity = await securityDB.findOne({ username });
+
+  if (existingSecurity) {
+    return res.status(409).send('Username already exists');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const security = {
+    username,
+    password: hashedPassword,
+  };
+
+  securityDB
+    .insertOne(security)
+    .then(() => {
+      res.status(200).send('Security registered successfully');
+    })
+    .catch((error) => {
+      res.status(500).send('Error registering security');
+    });
+});
+
   
 /**
 * @swagger
