@@ -272,6 +272,8 @@ function generateUniqueID(length) {
 *                       type: string
 *                     phoneNo:
 *                       type: string
+*                     staffID:
+*                       type: string
 *       401:
 *         description: Invalid credentials
 *       500:
@@ -280,38 +282,40 @@ function generateUniqueID(length) {
 
 // Staff login
 app.post('/login-staff', async (req, res) => {
-    const { username, password } = req.body;
-  
-    const staff = await staffDB.findOne({ username });
-  
-    if (!staff) {
-      return res.status(401).send('Invalid credentials');
-    }
-  
-    const passwordMatch = await bcrypt.compare(password, staff.password);
-  
-    if (!passwordMatch) {
-      return res.status(401).send('Invalid credentials');
-    }
-  
-    const token = jwt.sign({ username, role: 'staff' }, secretKey);
-  
-    // Include additional details in the response
-    const userDetails = {
-      fullName: staff.fullName,
-      department: staff.department,
-      phoneNo: staff.phoneNo,
-    };
+  const { username, password } = req.body;
 
-    staffDB
-      .updateOne({ username }, { $set: { token } })
-      .then(() => {
-        res.status(200).json({ token, userDetails });
-      })
-      .catch(() => {
-        res.status(500).send('Error storing token');
-      });
+  const staff = await staffDB.findOne({ username });
+
+  if (!staff) {
+    return res.status(401).send('Invalid credentials');
+  }
+
+  const passwordMatch = await bcrypt.compare(password, staff.password);
+
+  if (!passwordMatch) {
+    return res.status(401).send('Invalid credentials');
+  }
+
+  const token = jwt.sign({ username, role: 'staff' }, secretKey);
+
+  // Include additional details in the response
+  const userDetails = {
+    fullName: staff.fullName,
+    department: staff.department,
+    phoneNo: staff.phoneNo,
+    staffID: staff.staffID, // Include the staff ID in the response
+  };
+
+  staffDB
+    .updateOne({ username }, { $set: { token } })
+    .then(() => {
+      res.status(200).json({ token, userDetails });
+    })
+    .catch(() => {
+      res.status(500).send('Error storing token');
+    });
 });
+
 
 /**
 * @swagger
