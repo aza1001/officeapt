@@ -146,13 +146,10 @@ app.post('/register-staff', authenticateToken, async (req, res) => {
 
   const { username, password } = req.body;
 
-  // Generate a 4-digit user ID
-  const userId = generateFourDigitUserId();
+  // Generate a 4-digit unique ID for the staff
+  const staffID = generateUniqueID(4);
 
-  // Append the user ID to the username
-  const uniqueUsername = `${userId}-${username}`;
-
-  const existingStaff = await staffDB.findOne({ username: uniqueUsername });
+  const existingStaff = await staffDB.findOne({ username });
 
   if (existingStaff) {
     return res.status(409).send('Username already exists');
@@ -161,8 +158,9 @@ app.post('/register-staff', authenticateToken, async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const staff = {
-    username: uniqueUsername,
+    username,
     password: hashedPassword,
+    staffID,
   };
 
   staffDB
@@ -175,9 +173,16 @@ app.post('/register-staff', authenticateToken, async (req, res) => {
     });
 });
 
-// Function to generate a random 4-digit user ID
-function generateFourDigitUserId() {
-  return Math.floor(1000 + Math.random() * 9000);
+// Function to generate a unique ID
+function generateUniqueID(length) {
+  const characters = '0123456789';
+  let result = '';
+
+  for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+
+  return result;
 }
   
   /**
