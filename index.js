@@ -530,44 +530,55 @@ app.put('/update-staff-info', authenticateToken, async (req, res) => {
  *                 properties:
  *                   username:
  *                     type: string
+ *                   staffID:
+ *                     type: string
  *     responses:
  *       200:
  *         description: Appointment created successfully
+ *       400:
+ *         description: Invalid StaffID
  *       500:
  *         description: Error creating appointment
  */
 
 // Create appointment
 app.post('/appointments', async (req, res) => {
-    const {
-      name,
-      company,
-      purpose,
-      phoneNo,
-      date,
-      time,
-      staff: { username },
-    } = req.body;
+  const {
+    name,
+    company,
+    purpose,
+    phoneNo,
+    date,
+    time,
+    staff: { username, staffID },
+  } = req.body;
 
-    const appointment = {
-      name,
-      company,
-      purpose,
-      phoneNo,
-      date,
-      time,
-      staff: { username },
-    };
+  const staff = await staffDB.findOne({ username });
 
-    appointmentDB
-      .insertOne(appointment)
-      .then(() => {
-        res.status(200).send('Appointment created successfully');
-      })
-      .catch((error) => {
-        res.status(500).send('Error creating appointment');
-      });
-  });
+  if (!staff || staff.staffID !== staffID) {
+    return res.status(400).send('Invalid StaffID');
+  }
+
+  const appointment = {
+    name,
+    company,
+    purpose,
+    phoneNo,
+    date,
+    time,
+    staff: { username },
+  };
+
+  appointmentDB
+    .insertOne(appointment)
+    .then(() => {
+      res.status(200).send('Appointment created successfully');
+    })
+    .catch((error) => {
+      res.status(500).send('Error creating appointment');
+    });
+});
+
 
 /**
 * @swagger
