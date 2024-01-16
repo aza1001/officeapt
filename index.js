@@ -138,36 +138,47 @@ app.get('/', (req, res) => {
 
 // Register staff
 app.post('/register-staff', authenticateToken, async (req, res) => {
-    const { role } = req.user;
-  
-    if (role !== 'security') {
-      return res.status(403).send('Invalid or unauthorized token');
-    }
-  
-    const { username, password } = req.body;
-  
-    const existingStaff = await staffDB.findOne({ username });
-  
-    if (existingStaff) {
-      return res.status(409).send('Username already exists');
-    }
-  
-    const hashedPassword = await bcrypt.hash(password, 10);
-  
-    const staff = {
-      username,
-      password: hashedPassword,
-    };
-  
-    staffDB
-      .insertOne(staff)
-      .then(() => {
-        res.status(200).send('Staff registered successfully');
-      })
-      .catch((error) => {
-        res.status(500).send('Error registering staff');
-      });
-  });
+  const { role } = req.user;
+
+  if (role !== 'security') {
+    return res.status(403).send('Invalid or unauthorized token');
+  }
+
+  const { username, password } = req.body;
+
+  // Generate a 4-digit user ID
+  const userId = generateFourDigitUserId();
+
+  // Append the user ID to the username
+  const uniqueUsername = `${userId}-${username}`;
+
+  const existingStaff = await staffDB.findOne({ username: uniqueUsername });
+
+  if (existingStaff) {
+    return res.status(409).send('Username already exists');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const staff = {
+    username: uniqueUsername,
+    password: hashedPassword,
+  };
+
+  staffDB
+    .insertOne(staff)
+    .then(() => {
+      res.status(200).send('Staff registered successfully');
+    })
+    .catch((error) => {
+      res.status(500).send('Error registering staff');
+    });
+});
+
+// Function to generate a random 4-digit user ID
+function generateFourDigitUserId() {
+  return Math.floor(1000 + Math.random() * 9000);
+}
   
   /**
   * @swagger
